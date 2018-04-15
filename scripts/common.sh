@@ -33,6 +33,16 @@ proxy \
 prometheus \
 kubernetes.node"
 
+COMPUTE_MODULES="init \
+storage \
+grbase.dns \
+docker \
+misc \
+etcd \
+network \
+node \
+kubernetes.node"
+
 SYS_NAME=$(grep "^ID=" /etc/os-release | awk -F = '{print $2}'|sed 's/"//g')
 SYS_VER=$(grep "^VERSION_ID=" /etc/os-release | awk -F = '{print $2}'|sed 's/"//g')
 
@@ -131,6 +141,10 @@ Echo_Error() {
     exit 1
 }
 
+Echo_EXIST() {
+    printf >&2 "${TPUT_BGRED}${TPUT_WHITE}${TPUT_BOLD} EXIST ${TPUT_RESET} ${*} \n\n"
+}
+
 #---  FUNCTION  -------------------------------------------------------------------------------------------------------
 #          NAME:  Echo_Info
 #   DESCRIPTION:  Echo information to stdout.
@@ -193,7 +207,7 @@ REG_Status(){
 # Name     : Check_net_card
 # Args     : $1=network config file,$2=ipaddress,$3=dnsinfo
 # Return   : 
-function Check_net_card(){
+Check_net_card(){
   net_file=$1
   ipaddr=$2
   
@@ -213,7 +227,7 @@ function Check_net_card(){
   fi
 }
 
-function Write_Host(){
+Write_Host(){
     ipaddr=$1
     name=${2:-null}
     if (grep $name /etc/hosts);then
@@ -222,9 +236,17 @@ function Write_Host(){
     echo -e "$ipaddr\t$name" >> /etc/hosts
 }
 
-function Install_PKG(){
+Install_PKG(){
     pkg_name=$1
     $INSTALL_BIN install -y -q $pkg_name
+}
+
+Cache_PKG(){
+    if [ "$SYS_NAME" == "centos" ];then
+        yum makecache
+    else
+        apt update -y
+    fi
 }
 
 

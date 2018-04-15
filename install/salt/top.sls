@@ -13,6 +13,7 @@ base:
     - plugins
     - proxy
     - prometheus
+    - expand
 
   "role:manage":
     - match: grains

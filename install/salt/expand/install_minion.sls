@@ -1,7 +1,7 @@
 minion_bootstrap:
   file.managed:
     - name: /tmp/bootstrap-salt.sh
-    - source: salt://minions/install/scripts/bootstrap-salt.sh
+    - source: salt://expand/scripts/bootstrap-salt.sh
     - user: root
     - group: root
     - mode: 644
