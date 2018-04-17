@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EXPAND_PATH="/srv/salt/expand"
+EXPAND_PATH="/srv/salt/minions"
 
 while getopts "r:i:u:p:" arg 
     do
@@ -73,13 +73,18 @@ function run(){
 }
 
 function check_node(){
-    cp ./before_install.sh $EXPAND_PATH/scripts/
+    [ -d $EXPAND_PATH/scripts/ ] || mkdir -p $EXPAND_PATH/scripts/
+    [ -f $EXPAND_PATH/check.sls ] \
+    || cp -rf ./install/salt/minions/check.sls $EXPAND_PATH
+    cp ./scripts/before_install.sh $EXPAND_PATH/scripts/
     sed -i "s/^NODE_HOSTNAME=*$/NODE_HOSTNAME=$Node_name/g" $EXPAND_PATH/scripts/before_install.sh
-    salt-ssh -i "$Node_name" state.sls expand.check || exit 1
+    echo "Checking $Node_name base..."
+    salt-ssh -i "$Node_name" state.sls minions.check || exit 1
 }
 
 function install_minion(){
-    salt-ssh -i "$Node_name" state.sls expand.install_minion || exit 1
+    echo "Installing minion..."
+    salt-ssh -i "$Node_name" state.sls minions.install || exit 1
 }
 
 function install_node(){
@@ -100,25 +105,23 @@ function install_node(){
     if [ "$NODE_TYPE" == "compute" ];then
         for compute_task in $compute_tasks
         do
-            echo "Do $compute_task in $NODE_TYPE"
+            echo "Doing $compute_task task in $NODE_TYPE..."
             salt -E "$NODE_TYPE" state.sls $compute_task || exit 1
         done
     elif [ "$NODE_TYPE" == "manage" ];then
         for manage_task in $manage_tasks
         do
-            echo "Do $manage_task in $NODE_TYPE"
+            echo "Doing $manage_task task in $NODE_TYPE..."
             salt -E "$NODE_TYPE" state.sls $manage_task || exit 1
         done
     fi
     
 }
 
-etcd
-
 # 根据参数配置roster、检查目标机器的环境
 run
 
-Master_ip=$(grep "inet-ip" /srv/salt/pillar/system_info.sls  | awk '{print$2}')
+Master_ip=$(grep "inet-ip" /srv/pillar/system_info.sls  | awk '{print$2}')
 Node_name=$(cat /etc/salt/roster | tail -n 4 | head -1 | awk -F ':' '{print$1}')
 
 # 检查minion、同时设置目标机器hostname

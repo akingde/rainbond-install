@@ -46,6 +46,25 @@ chmod +x install.sh
 
 You can find all the documentation in the [Wiki](https://github.com/goodrain/rainbond-install/wiki).
 
+#### Expand
+Through a script Which is "node_add.sh" to expand node.
+
+**Parameter**
+
+```
+-r [Role],       Specify a node type(manage/compute)<br>
+-i [IP],         The ip address what you Specified node<br>
+-p [Password]    The login password what you Specified node
+```
+
+**Usage**
+
+```
+cd rainbond-install/script<br>
+bash ./node_add.sh -r  -i  -p
+```
+
+
 #### Usage
 
 You can find all the documentation in the [Docs](https://www.rainbond.com/docs/stable/).

@@ -8,4 +8,3 @@ before_install:
 check:
   cmd.run:
     - name: bash /tmp/before_install.sh
-    - watch: /tmp/before_install.sh
