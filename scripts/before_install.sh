@@ -75,14 +75,20 @@ function check_docker(){
 # check netcard
 
 function check_netcard(){
-    eth=$(ls -1 /sys/class/net|grep -v lo | head -1)
-      ipaddr=$(ip addr show $eth | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}' )
+  eths=$(ls -1 /sys/class/net|grep -v lo)
+  for eth in $eths
+  do
+    ipaddr=$(ip addr show $eth | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}')
+    if [ "$ipaddr" != "" ];then
       if [ "$SYS_NAME" == "centos" ];then
-        check_netcard_base $NET_FILE/ifcfg-$eth $ipaddr
+        check_netcard_base $NET_FILE/ifcfg-$eth $ipaddr \
+        && return 0
       else
-        check_netcard_base $NET_FILE $ipaddr
+        check_netcard_base $NET_FILE $ipaddr \
+        && return 0
       fi
-
+    fi
+  done
 }
 
 function check_netcard_base(){
@@ -93,17 +99,14 @@ function check_netcard_base(){
     isIPExist=$(grep "$ipaddr" $net_file | grep -v "#")
     isDNSExist=$(grep "$DNS_INFO" $net_file | grep -v "#")
     
-    if [ "$isStatic" == "" ] || [ "$isIPExist" == "" ] ;then
-      echo "There is no static ip in $net_file"
-      exit 1
-    fi
-    if [ "$isDNSExist" != "" ];then
-      echo "The DNS shouldn't config in $net_file"
-      exit 1
-    fi
+  if [ "$isStatic" != "" ] || [ "$isIPExist" != "" ] ;then
+    return 0
+  fi
+  if [ "$isDNSExist" == "" ];then
+    return 0
+  fi
   else
-    echo "There is no network config file."
-    exit 1
+    echo "There is no network config file, Next..."
   fi
 }
 
@@ -117,4 +120,4 @@ check_hardware && echo "cpu、mem is ok"
 
 check_docker && echo "docker isn't install"
 
-check_netcard && echo "there is static card and no dns config"
+check_netcard && echo "there is static card and no dns config" ||  exit 
