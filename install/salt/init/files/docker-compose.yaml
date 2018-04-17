@@ -151,7 +151,12 @@ services:
     volumes:
     - /usr/local/bin/kubectl:/usr/bin/kubectl
     - /root/.kube:/root/.kube
+    # hostIP需要内网ip
+    {% if grains['id'] == "manage01" %}
     command: --hostIP={{ pillar['inet-ip'] }}
+    {% else %}
+    command: --hostIP=
+    {% endif %}
     logging:
       driver: json-file
       options:
@@ -194,12 +199,12 @@ services:
         max-file: '3'
     network_mode: host
     restart: always
-{% if grains['host'] == "manage01" %}
-  rbd-db:
-    image: rainbond/rbd-db:{{ pillar['rbd-version'] }}
-    container_name: rbd-db
+  rbd-repo:
+    image: rainbond/rbd-repo:{{ pillar['rbd-version'] }}
+    container_name: rbd-repo
     volumes:
-    - {{ pillar['rbd-path'] }}/data/rbd-db:/data
+      # 挂载目录/grdata/services/artifactory5改为/grdata/services/artifactory<hostname的编号>
+    - /grdata/services/artifactory5:/var/opt/jfrog/artifactory
     logging:
       driver: json-file
       options:
@@ -222,20 +227,8 @@ services:
     volumes:
     - {{ pillar['rbd-path'] }}/kubernetes/kubecfg:/etc/goodrain/kubernetes
     - /grdata:/grdata
-    command: --log-level=info --kube-config="/etc/goodrain/kubernetes/admin.kubeconfig"
+    command: --log-level=info --kube-config="{{ pillar['rbd-path'] }}/kubernetes/kubecfg/admin.kubeconfig"
       --mysql="{{ pillar['database']['mysql']['user'] }}:{{ pillar['database']['mysql']['pass'] }}@tcp({{ pillar['database']['mysql']['host'] }}:{{ pillar['database']['mysql']['port'] }})/region"
-    logging:
-      driver: json-file
-      options:
-        max-size: 50m
-        max-file: '3'
-    network_mode: host
-    restart: always
-  rbd-repo:
-    image: rainbond/rbd-repo:{{ pillar['rbd-version'] }}
-    container_name: rbd-repo
-    volumes:
-    - /grdata/services/artifactory5:/var/opt/jfrog/artifactory
     logging:
       driver: json-file
       options:
@@ -250,6 +243,19 @@ services:
     - /grdata/services/prometheus/data:/prometheusdata
     - {{ pillar['rbd-path'] }}/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     command: --web.listen-address=":9999" --storage.tsdb.path="/prometheusdata" --storage.tsdb.retention=7d --config.file="/etc/prometheus/prometheus.yml"
+    logging:
+      driver: json-file
+      options:
+        max-size: 50m
+        max-file: '3'
+    network_mode: host
+    restart: always
+{% if grains['host'] == "manage01" %}
+  rbd-db:
+    image: rainbond/rbd-db:{{ pillar['rbd-version'] }}
+    container_name: rbd-db
+    volumes:
+    - {{ pillar['rbd-path'] }}/data/rbd-db:/data
     logging:
       driver: json-file
       options:

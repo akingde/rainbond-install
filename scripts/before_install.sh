@@ -75,14 +75,14 @@ function check_docker(){
 # check netcard
 
 function check_netcard(){
-    for eth in $(ls -1 /sys/class/net|grep -v lo) ;do 
+    eth=$(ls -1 /sys/class/net|grep -v lo | head -1)
       ipaddr=$(ip addr show $eth | awk '$1 == "inet" {gsub(/\/.*$/, "", $2); print $2}' )
       if [ "$SYS_NAME" == "centos" ];then
         check_netcard_base $NET_FILE/ifcfg-$eth $ipaddr
       else
         check_netcard_base $NET_FILE $ipaddr
       fi
-    done
+
 }
 
 function check_netcard_base(){

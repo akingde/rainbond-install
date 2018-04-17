@@ -123,3 +123,5 @@ check_node
 install_minion
 # 安装计算节点
 install_node
+
+# 
