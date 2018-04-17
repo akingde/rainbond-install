@@ -7,12 +7,18 @@ MEM_SIZE=$(free -h | grep Mem | awk '{print $2}' | cut -d 'G' -f1 | awk -F '.' '
 if [ "$SYS_NAME" == "centos" ];then
     DNS_INFO="^DNS"
     NET_FILE="/etc/sysconfig/network-scripts"
+    INSTALL_BIN="yum"
 else
     DNS_INFO="dns-nameservers"
     NET_FILE="/etc/network/interfaces"
+    INSTALL_BIN="apt"
 fi
 
-function set_hostname(){
+function Initialize_Package(){
+  $INSTALL_BIN install -y -q net-tools
+}
+
+function Set_Hostname(){
   inet_ip=$(ip ad | grep 'inet ' | egrep ' 10.|172.|192.168' | awk '{print $2}' | cut -d '/' -f 1 | grep -v '172.30.42.1' | head -1)
   hostname $NODE_HOSTNAME
   echo "$NODE_HOSTNAME" > /etc/hostname
@@ -20,7 +26,7 @@ function set_hostname(){
 }
 
 # check net
-function net_test(){
+function Net_Test(){
 curl -s --connect-timeout 3 https://www.rainbond.com -o /dev/null 2>/dev/null
 if [ $? -eq 0 ];then
     return 0
@@ -31,7 +37,7 @@ fi
 }
 
 # check system_version
-function system_version(){
+function System_Version(){
   case $SYS_NAME in
   "centos")
     [ "$SYS_VER" == "7" ] \
@@ -56,7 +62,7 @@ function system_version(){
 }
 
 # check cpu mem
-function check_hardware(){
+function Check_Hardware(){
     if [ $CPU_NUM -lt 2 ] || [ $MEM_SIZE -lt 4 ];then
       echo "We need 2 CPUS, 4G Memories. But you Have $CPU_NUM CPUS,$MEM_SIZE G Memories"
       exit 1
@@ -64,7 +70,7 @@ function check_hardware(){
 }
 
 # check docker
-function check_docker(){
+function Check_Docker(){
     if $(which docker >/dev/null 2>&1);then
         echo "Rainbond integrated customized docker, Please uninstall it first."
         exit 1
@@ -74,7 +80,7 @@ function check_docker(){
 }
 # check netcard
 
-function check_netcard(){
+function Check_Netcard(){
   eths=$(ls -1 /sys/class/net|grep -v lo)
   for eth in $eths
   do
@@ -109,15 +115,16 @@ function check_netcard_base(){
     echo "There is no network config file, Next..."
   fi
 }
+Initialize_Package
 
-set_hostname && echo "hostname is set to $NODE_HOSTNAME"
+Set_Hostname && echo "hostname is set to $NODE_HOSTNAME"
 
-net_test && echo "net is ok"
+Net_Test && echo "net is ok"
 
-system_version && echo "system is ok"
+System_Version && echo "system is ok"
 
-check_hardware && echo "cpu、mem is ok"
+Check_Hardware && echo "cpu、mem is ok"
 
-check_docker && echo "docker isn't install"
+Check_Docker && echo "docker isn't install"
 
-check_netcard && echo "there is static card and no dns config" ||  exit 
+Check_Netcard && echo "there is static card and no dns config" || exit 1

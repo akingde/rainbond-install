@@ -35,8 +35,6 @@ salt-minion-conf:
     - group: root
     - mode: 644
     - template: jinja
-    - defaults:
-      minion_id: {{ grains['id'] }}
     - require:
       - pkg: salt-minion-install
 

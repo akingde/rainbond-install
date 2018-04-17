@@ -84,9 +84,9 @@ function install_minion(){
 
 function install_node(){
     compute_tasks="init storage grbase.dns docker.install misc network etcd node kubernetes.node"
-    manage_tasks=""
+    manage_tasks="init storage docker.install misc etcd"
     #计算节点任务列表   
-        # 安装 net-tools
+        # 安装 net-tools   (expand.check里添加了install)
         # 初始化用户、目录、免密...
         # install nfs 挂载
         # 配置dns为manage01
@@ -100,21 +100,25 @@ function install_node(){
     if [ "$NODE_TYPE" == "compute" ];then
         for compute_task in $compute_tasks
         do
+            echo "Do $compute_task in $NODE_TYPE"
             salt -E "$NODE_TYPE" state.sls $compute_task || exit 1
         done
     elif [ "$NODE_TYPE" == "manage" ];then
         for manage_task in $manage_tasks
         do
+            echo "Do $manage_task in $NODE_TYPE"
             salt -E "$NODE_TYPE" state.sls $manage_task || exit 1
         done
     fi
     
 }
 
+etcd
+
 # 根据参数配置roster、检查目标机器的环境
 run
 
-Master_ip=$(grep "inet-ip" ../install/pillar/system_info.sls  | awk '{print$2}')
+Master_ip=$(grep "inet-ip" /srv/salt/pillar/system_info.sls  | awk '{print$2}')
 Node_name=$(cat /etc/salt/roster | tail -n 4 | head -1 | awk -F ':' '{print$1}')
 
 # 检查minion、同时设置目标机器hostname
@@ -122,6 +126,4 @@ check_node
 # 安装salt-minion、配置minion.conf
 install_minion
 # 安装计算节点
-install_node
-
-# 
+install_node && echo "Expand complete"
