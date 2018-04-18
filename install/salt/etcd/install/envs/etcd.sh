@@ -1,1 +1,1 @@
-LOCAL_IP={{ grains.id }}
+LOCAL_IP={{ pillar['inet-ip'] }}
