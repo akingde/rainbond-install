@@ -32,7 +32,7 @@ Plugins Version:
 
 - Quick start
 
-```
+```Bash
 # stable 
 curl -k -L -o install.sh https://raw.githubusercontent.com/goodrain/rainbond-install/master/install.sh 
 chmod +x install.sh 
@@ -59,10 +59,15 @@ Through a script Which is "add_node.sh" to add a compute node.
 
 **Usage**
 
-```
-bash ./add_node.sh -r  -i  -p
+```Bash
+bash ./add_node.sh -r <compute|manage> -i <IP> -p <Password>
 ```
 
+> **Such as:**
+>
+> ```Bash
+> bash ./add_node.sh -r compute -i 192.168.1.1 -p 123456
+> ```
 
 ### Documents
 
