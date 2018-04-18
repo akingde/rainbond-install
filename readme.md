@@ -61,7 +61,7 @@ Through a script Which is "node_add.sh" to expand node.
 
 ```
 cd rainbond-install/script<br>
-bash ./node_add.sh -r  -i  -p
+bash ./add_node.sh -r  -i  -p
 ```
 
 
