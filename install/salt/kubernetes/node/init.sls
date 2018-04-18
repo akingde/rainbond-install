@@ -36,6 +36,8 @@ kubelet-cfg-rsync:
     - source: salt://kubernetes/server/install/kubecfg
     - name: {{ pillar['rbd-path'] }}/kubernetes/kubecfg
 
+{% endif %}
+
 kubelet-cni:
   file.recurse:
     - source: salt://kubernetes/node/install/cni

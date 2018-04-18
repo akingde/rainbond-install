@@ -236,7 +236,7 @@ echo "" > /etc/salt/roster
   systemctl enable salt-minion
   systemctl restart salt-minion
 
-  Echo_Info "Waiting to start salt."
+  Echo_Info "Waiting for salt service startup ..."
   for ((i=1;i<=10;i++ )); do
     echo -e -n "."
     sleep 1
