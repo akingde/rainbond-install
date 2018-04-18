@@ -91,7 +91,7 @@ function install_node(){
     compute_tasks="init storage grbase.dns docker.install misc network etcd node kubernetes.node"
     manage_tasks="init storage docker.install misc etcd"
     #计算节点任务列表   
-        # 安装 net-tools
+        # 安装 net-tools   (expand.check里添加了install)
         # 初始化用户、目录、免密...
         # install nfs 挂载
         # 配置dns为manage01
@@ -111,10 +111,6 @@ function install_node(){
     elif [ "$NODE_TYPE" == "manage" ];then
         for manage_task in $manage_tasks
         do
-            if [ "$manage_task" == "etcd" ];then
-                echo "Prepare to install etcd..."
-                salt "manage01" state.sls prepare || exit 1
-            fi
             echo "Doing $manage_task task in $NODE_TYPE..."
             salt -E "$NODE_TYPE" state.sls $manage_task || exit 1
         done
