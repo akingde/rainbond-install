@@ -76,6 +76,7 @@ function check_node(){
     [ -d $EXPAND_PATH/scripts/ ] || mkdir -p $EXPAND_PATH/scripts/
     [ -f $EXPAND_PATH/check.sls ] \
     || cp -rf ./install/salt/minions/check.sls $EXPAND_PATH
+    cp ./scripts/before_install.sh $EXPAND_PATH/scripts/
     sed -i "s/^NODE_HOSTNAME=*$/NODE_HOSTNAME=$Node_name/g" $EXPAND_PATH/scripts/before_install.sh
     echo "Checking $Node_name base..."
     salt-ssh -i "$Node_name" state.sls minions.check || exit 1
@@ -88,18 +89,7 @@ function install_minion(){
 
 function install_node(){
     compute_tasks="init storage grbase.dns docker.install misc network etcd node kubernetes.node"
-    manage_tasks="init storage docker.install misc etcd"
-    #计算节点任务列表   
-        # 安装 net-tools   (expand.check里添加了install)
-        # 初始化用户、目录、免密...
-        # install nfs 挂载
-        # 配置dns为manage01
-        # 配置源、装gr-docker、dps、dc-compose
-        # 准备相关二进制
-        # 安装calico
-        # 安装ercd-proxy
-        # 安装 node
-        # 安装 kubelet
+    manage_tasks="init storage docker.install misc etcd network grbase"
 
     if [ "$NODE_TYPE" == "compute" ];then
         for compute_task in $compute_tasks
@@ -111,16 +101,26 @@ function install_node(){
         for manage_task in $manage_tasks
         do
             echo "Doing $manage_task task in $NODE_TYPE..."
+            [ "$manage_task" == "etcd" ] && deal_etcd
             salt -E "$NODE_TYPE" state.sls $manage_task || exit 1
         done
+    fi 
+}
+
+function deal_etcd(){
+    has_compute="salt-key -L | grep compute"
+    etcdctl member add $Node_name http://$Node_ip:2380
+    if [ "$has_compute" != "" ];then
+        # 处理计算节点有关etcd-endpoint
+        salt -E "compute" state.sls etcd
+        salt -E "compute" state.sls network
     fi
-    
 }
 
 # 根据参数配置roster、检查目标机器的环境
 run
 
-Master_ip=$(grep "inet-ip" /srv/pillar/system_info.sls  | awk '{print$2}')
+Node_ip=$(grep "inet-ip" /srv/pillar/system_info.sls  | awk '{print$2}')
 Node_name=$(cat /etc/salt/roster | tail -n 4 | head -1 | awk -F ':' '{print$1}')
 
 # 检查minion、同时设置目标机器hostname

@@ -52,7 +52,7 @@ Through a script Which is "add_node.sh" to add a compute node.
 **Parameter**
 
 ```
--r <Role>,       Specify a node type <compute|manage> ,follow-up support management node.
+-r <Role>,       Specify a node type <compute|manage> ,follow-up support management node.
 -i <IP>,         The ip address what you Specified node
 -p <Password>    The login password what you Specified node
 ```

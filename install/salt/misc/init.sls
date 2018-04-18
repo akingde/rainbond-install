@@ -1,5 +1,5 @@
 include:
-{% if grains['host'] == "manage01" %}
+{% if "manage" in grains['host'] %}
   - misc.onenode
 {% endif %}
   - misc.prepare
