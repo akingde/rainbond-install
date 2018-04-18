@@ -76,7 +76,6 @@ function check_node(){
     [ -d $EXPAND_PATH/scripts/ ] || mkdir -p $EXPAND_PATH/scripts/
     [ -f $EXPAND_PATH/check.sls ] \
     || cp -rf ./install/salt/minions/check.sls $EXPAND_PATH
-    cp ./scripts/before_install.sh $EXPAND_PATH/scripts/
     sed -i "s/^NODE_HOSTNAME=*$/NODE_HOSTNAME=$Node_name/g" $EXPAND_PATH/scripts/before_install.sh
     echo "Checking $Node_name base..."
     salt-ssh -i "$Node_name" state.sls minions.check || exit 1
